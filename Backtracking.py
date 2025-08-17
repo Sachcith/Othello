@@ -2,11 +2,13 @@ class Board:
     def __init__(self,size=8):
         self.size = size
         self.board = self.createMatrix()
+        '''
         self.board[3][3]="O"
         self.board[4][4]="O"
         self.board[3][4]="X"
-        self.board[4][3]="X"
-        self.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
+        self.board[4][3]="X"  ,(4,3)
+        '''
+        self.val = {"X":[(5,5)],"O":[(3,3),(4,4)]}
         #self.valid = [0 for i in range(self.size)]
 
     def createMatrix(self):
@@ -38,7 +40,7 @@ class Board:
         ans = set()
         temp = self.val[val]
         for i in temp:
-            if self.board[i[0]-1][i[1]]==self.opposite(val): # Up
+            if i[0]-1>=0 and self.board[i[0]-1][i[1]]==self.opposite(val): # Up
                 flag = True
                 index = -1
                 for j in range(i[0]-1,-1,-1):
@@ -51,7 +53,7 @@ class Board:
                 if flag:
                     ans.add((index,i[1]))
 
-            if self.board[i[0]+1][i[1]]==self.opposite(val): # Down
+            if i[0]+1<self.size and self.board[i[0]+1][i[1]]==self.opposite(val): # Down
                 flag = True
                 index = -1
                 for j in range(i[0]+1,self.size):
@@ -64,7 +66,7 @@ class Board:
                 if flag:
                     ans.add((index,i[1]))
 
-            if self.board[i[0]][i[1]-1]==self.opposite(val): # Left
+            if i[1]-1>=0 and self.board[i[0]][i[1]-1]==self.opposite(val): # Left
                 flag = True
                 index = -1
                 for j in range(i[1]-1,-1,-1):
@@ -77,7 +79,7 @@ class Board:
                 if flag:
                     ans.add((i[0],index))
 
-            if self.board[i[0]][i[1]+1]==self.opposite(val): # Right
+            if i[1]+1<self.size and self.board[i[0]][i[1]+1]==self.opposite(val): # Right
                 flag = True
                 index = -1
                 for j in range(i[1]+1,self.size):
@@ -90,24 +92,69 @@ class Board:
                 if flag:
                     ans.add((i[0],index))
 
-            if self.board[i[0]-1][i[1]-1]==self.opposite(val): # Top Left
+            if i[0]-1>=0 and i[1]-1>=0 and self.board[i[0]-1][i[1]-1]==self.opposite(val): # Top Left
                 flag = True
                 index = -1
-                for j in range(i[1]-1,-1,-1):
-                    if self.board[(i[0]-i[1])+j][j]==val:
-                        flag = False
-                        break
-                    elif self.board[(i[0]-i[1])+j][j]==0:
-                        index = j
+                for j in range(i[0]-1,-1,-1):
+                    if i[1]-i[0]+j>=0:
+                        if self.board[j][i[1]-i[0]+j]==val:
+                            flag = False
+                            break
+                        elif self.board[j][i[1]-i[0]+j]==0:
+                            index = j
+                            break
+                    else:
                         break
                 if flag:
-                    ans.add(((i[0]-i[1])+index,index))
+                    ans.add((index,i[1]-i[0]+index))
 
-            if self.board[i[0]+1][i[1]-1]==self.opposite(val): # Bottom Left
+            if i[0]+1<self.size and i[1]+1<self.size and self.board[i[0]+1][i[1]+1]==self.opposite(val): # Bottom Right
                 flag = True
                 index = -1
-                for j in range(i[1]+1,self.size):
-                    print((i[0]-i[1])+j,j)
+                for j in range(i[0]+1,self.size):
+                    if i[1]-i[0]+j<self.size:
+                        if self.board[j][i[1]-i[0]+j]==val:
+                            flag = False
+                            break
+                        elif self.board[j][i[1]-i[0]+j]==0:
+                            index = j
+                            break
+                    else:
+                        break
+                if flag:
+                    ans.add((index,i[1]-i[0]+index))
+
+            if i[0]-1>=0 and i[1]+1<self.size and self.board[i[0]-1][i[1]+1]==self.opposite(val): # Top Right
+                flag = True
+                index = -1
+                for j in range(i[0]-1,-1,-1):
+                    if i[1]+i[0]-j<self.size:
+                        if self.board[j][i[1]+i[0]-j]==val:
+                            flag = False
+                            break
+                        elif self.board[j][i[1]+i[0]-j]==0:
+                            index = j
+                            break
+                    else:
+                        break
+                if flag:
+                    ans.add((index,i[1]+i[0]-index))
+
+            if i[0]+1<self.size and i[1]-1>=0 and self.board[i[0]+1][i[1]-1]==self.opposite(val): # Bottom Left
+                flag = True
+                index = -1
+                for j in range(i[0]+1,self.size):
+                    if i[1]+i[0]-j>=0:
+                        if self.board[j][i[1]+i[0]-j]==val:
+                            flag = False
+                            break
+                        elif self.board[j][i[1]+i[0]-j]==0:
+                            index = j
+                            break
+                    else:
+                        break
+                if flag:
+                    ans.add((index,i[1]+i[0]-index))
 
         return list(ans)
 
@@ -128,11 +175,14 @@ class Board:
     '''
     
 temp = Board()
-#temp.board[4][2]="X"
+temp.board[2][2]="O"
 temp.board[2][3]="O"
-temp.board[1][2]="X"
-temp.board[5][2]="O"
+temp.board[2][4]="O"
 temp.board[3][2]="O"
-#temp.board[3][2]="O"
+#temp.board[3][3]="X"
+temp.board[3][4]="O"
+temp.board[4][2]="O"
+temp.board[4][3]="O"
+temp.board[4][4]="O"
 print(temp.valid("X"))
 temp.disp()
