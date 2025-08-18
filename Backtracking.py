@@ -68,7 +68,7 @@ class Board:
                     elif self.board[j][i[1]]==0:
                         index = j
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1],1))
 
             if i[0]+1<self.size and self.board[i[0]+1][i[1]]==self.opposite(val): # Down
@@ -81,7 +81,7 @@ class Board:
                     elif self.board[j][i[1]]==0:
                         index = j
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1],0))
 
             if i[1]-1>=0 and self.board[i[0]][i[1]-1]==self.opposite(val): # Left
@@ -94,7 +94,7 @@ class Board:
                     elif self.board[i[0]][j]==0:
                         index = j
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((i[0],index,3))
 
             if i[1]+1<self.size and self.board[i[0]][i[1]+1]==self.opposite(val): # Right
@@ -107,7 +107,7 @@ class Board:
                     elif self.board[i[0]][j]==0:
                         index = j
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((i[0],index,2))
 
             if i[0]-1>=0 and i[1]-1>=0 and self.board[i[0]-1][i[1]-1]==self.opposite(val): # Top Left
@@ -123,7 +123,7 @@ class Board:
                             break
                     else:
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1]-i[0]+index,5))
 
             if i[0]+1<self.size and i[1]+1<self.size and self.board[i[0]+1][i[1]+1]==self.opposite(val): # Bottom Right
@@ -139,7 +139,7 @@ class Board:
                             break
                     else:
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1]-i[0]+index,4))
 
             if i[0]-1>=0 and i[1]+1<self.size and self.board[i[0]-1][i[1]+1]==self.opposite(val): # Top Right
@@ -155,7 +155,7 @@ class Board:
                             break
                     else:
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1]+i[0]-index,7))
 
             if i[0]+1<self.size and i[1]-1>=0 and self.board[i[0]+1][i[1]-1]==self.opposite(val): # Bottom Left
@@ -171,7 +171,7 @@ class Board:
                             break
                     else:
                         break
-                if flag:
+                if flag and index!=-1:
                     ans.add((index,i[1]+i[0]-index,6))
 
         return list(ans)
@@ -198,7 +198,7 @@ class Board:
                     for j in range(i[0]-1,-1,-1):
                         if self.board[j][i[1]]==val:
                             break
-                        self.board[j][i[1]]==val
+                        self.board[j][i[1]]=val
                         self.val[val].append((j,i[1]))
                         self.val[self.opposite(val)].remove((j,i[1]))
 
@@ -269,6 +269,9 @@ class Board:
         self.board = self.copy(self.__undo)
         self.val = self.copy_dict(self.__undo_Dict)
 
+    def heuristic(self):
+        return len(self.val["X"])-len(self.val["O"])
+
 class Othello:
     __board = None
     __player = None
@@ -277,6 +280,9 @@ class Othello:
         self.__board = Board()
         self.__player = True
 
+    def next_move(self,player,cur_depth,max_depth,):
+
+
     def start_game(self):
         count = 64 - 4
         self.__board.disp()
@@ -284,12 +290,33 @@ class Othello:
             count-=1
             if self.__player:
                 self.__player = False
+                print(self.__board.valid("X"))
+                print(self.__board.val["X"])
                 self.__board.disp_val("X")
                 row = int(input("Enter Row: "))
                 col = int(input("Enter Col: "))
                 self.__board.insert(row,col,"X")
             else:
                 self.__player = True
+                move = self.next_move()
+
+    def start_game_PVP(self):
+        count = 64 - 4
+        self.__board.disp()
+        while count!=0:
+            count-=1
+            if self.__player:
+                self.__player = False
+                print(self.__board.valid("X"))
+                print(self.__board.val["X"])
+                self.__board.disp_val("X")
+                row = int(input("Enter Row: "))
+                col = int(input("Enter Col: "))
+                self.__board.insert(row,col,"X")
+            else:
+                self.__player = True
+                print(self.__board.valid("O"))
+                print(self.__board.val["O"])
                 self.__board.disp_val("O")
                 row = int(input("Enter Row: "))
                 col = int(input("Enter Col: "))
