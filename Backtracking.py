@@ -330,6 +330,57 @@ class Othello:
             if flag:
                 return mi,row,col
             return "N",row,col
+        
+    def next_move_alpha_beta(self,player,max_depth,cur_depth=0,row=-1,column=-1,alpha=float("-inf"),beta=float("inf")):
+        if self.__board.winloss()!=0:
+            return self.__board.winloss(),row,column
+        if cur_depth == max_depth:
+            return self.__board.heuristic(),row,column
+        
+        if player:
+            ma = float('-inf')
+            row = -1
+            col = -1
+            flag = False
+            for i in self.__board.valid("X"):
+                flag = True
+                #self.__board.disp_val("X")
+                self.__board.insert(i[0],i[1],"X")
+                heur,r,c = self.next_move_alpha_beta(False,max_depth,cur_depth+1,i[0],i[1],alpha,beta)
+                self.__board.undo()
+                if heur!="N" and heur>ma and r!=-1 and c!=-1:
+                    ma = heur
+                    row = i[0]
+                    col = i[1]
+                if heur!="N" and r!=-1 and c!=-1:
+                    alpha = max(alpha,heur)
+                    if alpha >= beta:
+                        break
+            if flag:
+                return ma,row,col
+            return "N",row,col
+        else:
+            mi = float('inf')
+            row = -1
+            col = -1
+            flag = False
+            for i in self.__board.valid("O"):
+                flag = True
+                #self.__board.disp_val("O")
+                self.__board.insert(i[0],i[1],"O")
+                heur,r,c = self.next_move_alpha_beta(True,max_depth,cur_depth+1,i[0],i[1],alpha,beta)
+                self.__board.undo()
+                if heur!="N" and heur<mi and r!=-1 and c!=-1:
+                    mi = heur
+                    row = i[0]
+                    col = i[1]
+                if heur!="N" and r!=-1 and c!=-1:
+                    beta = min(beta,heur)
+                    if alpha >= beta:
+                        break
+            if flag:
+                return mi,row,col
+            return "N",row,col
 
 
 
@@ -349,9 +400,9 @@ class Othello:
             else:
                 self.__player = True
                 self.__board.disp_val("O")
-                heur,row,col = self.next_move(False,4)
+                heur,row,col = self.next_move_alpha_beta(False,6)
                 print("Thingy",row,col,heur)
-                if heur!="N":
+                if heur!="N" and row!=-1 and col!=-1:
                     print("Inside thingy")
                     self.__board.insert(row,col,"O")
                 else:
@@ -359,6 +410,9 @@ class Othello:
         print("⚫ Count:",len(self.__board.val["X"]))
         print("⚪ Count:",len(self.__board.val["O"]))
         print("Game Over!!!")
+
+
+
 
     def start_game_PVP(self):
         count = 64 - 4
