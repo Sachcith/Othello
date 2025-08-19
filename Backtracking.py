@@ -7,9 +7,9 @@ class Board:
         self.board[4][4]="O"
         self.board[3][4]="X"
         self.board[4][3]="X"
-        self.__undo = self.board
+        self.__undo = []
         self.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
-        self.__undo_Dict = self.val
+        self.__undo_Dict = []
         #self.valid = [0 for i in range(self.size)]
 
     def createMatrix(self):
@@ -182,7 +182,8 @@ class Board:
     def copy_dict(self,x):
         temp = {}
         for i in x:
-            temp[i]=x[i]
+            temp[i]=[]
+            temp[i].extend(x[i])
         return temp
     
     def insert(self,row,column,val):
@@ -190,8 +191,8 @@ class Board:
             return False
         if self.board[row][column]!=0:
             return False
-        self.__undo = self.copy(self.board)
-        self.__undo_Dict = self.copy_dict(self.val)
+        self.__undo.append(self.copy(self.board))
+        self.__undo_Dict.append(self.copy_dict(self.val))
         for i in self.valid(val):
             if (row,column)==i[:-1]: 
                 if i[2]==0: # Up
@@ -266,11 +267,18 @@ class Board:
         return True
     
     def undo(self):
-        self.board = self.copy(self.__undo)
-        self.val = self.copy_dict(self.__undo_Dict)
+        self.board = self.copy(self.__undo.pop())
+        self.val = self.copy_dict(self.__undo_Dict.pop())
 
     def heuristic(self):
         return len(self.val["X"])-len(self.val["O"])
+    
+    def winloss(self):
+        if len(self.val["O"])==0:
+            return 200
+        if len(self.val["X"])==0:
+            return 200
+        return 0
 
 class Othello:
     __board = None
@@ -280,7 +288,49 @@ class Othello:
         self.__board = Board()
         self.__player = True
 
-    def next_move(self,player,cur_depth,max_depth,):
+    def next_move(self,player,max_depth,cur_depth=0,row=-1,column=-1):
+        if self.__board.winloss()!=0:
+            return self.__board.winloss(),row,column
+        if cur_depth == max_depth:
+            return self.__board.heuristic(),row,column
+        
+        if player:
+            ma = float('-inf')
+            row = -1
+            col = -1
+            flag = False
+            for i in self.__board.valid("X"):
+                flag = True
+                #self.__board.disp_val("X")
+                self.__board.insert(i[0],i[1],"X")
+                heur,r,c = self.next_move(False,max_depth,cur_depth+1,i[0],i[1])
+                self.__board.undo()
+                if heur!="N" and heur>ma and r!=-1 and c!=-1:
+                    ma = heur
+                    row = i[0]
+                    col = i[1]
+            if flag:
+                return ma,row,col
+            return "N",row,col
+        else:
+            mi = float('inf')
+            row = -1
+            col = -1
+            flag = False
+            for i in self.__board.valid("O"):
+                flag = True
+                #self.__board.disp_val("O")
+                self.__board.insert(i[0],i[1],"O")
+                heur,r,c = self.next_move(True,max_depth,cur_depth+1,i[0],i[1])
+                self.__board.undo()
+                if heur!="N" and heur<mi and r!=-1 and c!=-1:
+                    mi = heur
+                    row = i[0]
+                    col = i[1]
+            if flag:
+                return mi,row,col
+            return "N",row,col
+
 
 
     def start_game(self):
@@ -298,7 +348,17 @@ class Othello:
                 self.__board.insert(row,col,"X")
             else:
                 self.__player = True
-                move = self.next_move()
+                self.__board.disp_val("O")
+                heur,row,col = self.next_move(False,4)
+                print("Thingy",row,col,heur)
+                if heur!="N":
+                    print("Inside thingy")
+                    self.__board.insert(row,col,"O")
+                else:
+                    break
+        print("⚫ Count:",len(self.__board.val["X"]))
+        print("⚪ Count:",len(self.__board.val["O"]))
+        print("Game Over!!!")
 
     def start_game_PVP(self):
         count = 64 - 4
