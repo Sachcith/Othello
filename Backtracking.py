@@ -394,8 +394,34 @@ class Othello:
                 print(self.__board.valid("X"))
                 print(self.__board.val["X"])
                 self.__board.disp_val("X")
-                row = int(input("Enter Row: "))
-                col = int(input("Enter Col: "))
+                while True:
+                    try:
+                        '''while True:
+                            try:
+                                row = int(input("Enter Row: "))
+                                break
+                            except KeyboardInterrupt:
+                                exit()
+                            except:
+                                continue
+                        while True:
+                            try:
+                                col = int(input("Enter Col: "))
+                                break
+                            except KeyboardInterrupt:
+                                exit()
+                            except:
+                                continue'''
+                        row = int(input("Enter Row: "))
+                        col = int(input("Enter Col: "))
+                        if (row,col) not in [i[:-1] for i in self.__board.valid("X")]:
+                            print(f"({row},{col}) is not valid")
+                            continue
+                        break
+                    except KeyboardInterrupt:
+                        exit()
+                    except:
+                        continue
                 self.__board.insert(row,col,"X")
             else:
                 self.__player = True
