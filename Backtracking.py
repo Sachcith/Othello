@@ -286,7 +286,7 @@ class Othello:
     
     def __init__(self):
         self.__board = Board()
-        self.__player = True
+        self.__player = False
 
     def next_move(self,player,max_depth,cur_depth=0,row=-1,column=-1):
         if self.__board.winloss()!=0:
@@ -391,9 +391,9 @@ class Othello:
             count-=1
             if self.__player:
                 self.__player = False
-                print(self.__board.valid("X"))
-                print(self.__board.val["X"])
-                self.__board.disp_val("X")
+                print(self.__board.valid("O"))
+                print(self.__board.val["O"])
+                self.__board.disp_val("O")
                 while True:
                     try:
                         '''while True:
@@ -414,7 +414,7 @@ class Othello:
                                 continue'''
                         row = int(input("Enter Row: "))
                         col = int(input("Enter Col: "))
-                        if (row,col) not in [i[:-1] for i in self.__board.valid("X")]:
+                        if (row,col) not in [i[:-1] for i in self.__board.valid("O")]:
                             print(f"({row},{col}) is not valid")
                             continue
                         break
@@ -422,15 +422,15 @@ class Othello:
                         exit()
                     except:
                         continue
-                self.__board.insert(row,col,"X")
+                self.__board.insert(row,col,"O")
             else:
                 self.__player = True
-                self.__board.disp_val("O")
-                heur,row,col = self.next_move_alpha_beta(False,6)
+                self.__board.disp_val("X")
+                heur,row,col = self.next_move_alpha_beta(True,6)
                 print("Thingy",row,col,heur)
                 if heur!="N" and row!=-1 and col!=-1:
                     print("Inside thingy")
-                    self.__board.insert(row,col,"O")
+                    self.__board.insert(row,col,"X")
                 else:
                     break
         print("⚫ Count:",len(self.__board.val["X"]))
