@@ -35,3 +35,4 @@ The game supports:
    python othello.py
    ```
 
+3. Play the game...
