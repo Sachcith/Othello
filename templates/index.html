@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Othello</title>
+</head>
+
+<script src="{{url_for('static',filename='socketio.min.js')}}"></script>
+
+<style>
+    body {
+        margin: 0;                     
+        height: 100vh;                 
+        display: flex;                 
+        flex-direction: column;
+        justify-content: center;       
+        align-items: center;   
+        background-color:  rgba(0, 128, 0, 0.323);         
+    }
+    .board {
+        border: 2px solid black;
+        border-radius: 8%;
+        padding: 0.5%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        background-color: rgba(0, 128, 0, 0.323);
+    }
+    td {
+        padding: 15px 20px;
+        border: 2px solid black;
+        border-radius: 100%;
+        color: transparent;
+        cursor: pointer;
+    }
+    .debug {
+        text-align: center;
+    }
+    button {
+        background-color: white;
+        color: black;
+        border: 2px solid black;
+        border-radius: 3px;
+    }
+</style>
+
+<body>
+    <div class="board">
+        <table id="table">
+            {% for i in range(8) %}
+                <tr>
+                    {% for j in range(8) %}
+                        {% if board[i][j]=="X" %}
+                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: black;">{{j}}</td>
+                        {% elif board[i][j]=="O" %}
+                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: white;">{{j}}</td>
+                        {% elif (i,j) in legal %}
+                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: grey;"></td>
+                        {% else %}
+                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: transparent;">{{j}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="Output">
+        <center>
+            <h3 id="output">{{statement}}</h3>
+            <h3 id="count">⚫: {{black}} ⚪: {{white}}</h3>
+            <a href="/resetThing"><button>Reset</button></a>
+        </center>
+    </div>
+</body>
+
+<script>
+    const socket = io();
+    const board = document.getElementById("table");
+    let click = true;
+    board.addEventListener("click",(e)=>{
+        if(!click) return;
+        if(e.target.tagName!=="TD") return;
+        let i = e.target.dataset.row;
+        let j = e.target.dataset.col;
+        socket.emit("move",{"i":i,"j":j});
+        console.log("Clicked: ("+i+","+j+")");
+        click = false;
+    });
+
+    socket.on("output",(data)=>{
+        let output = document.getElementById("output");
+        output.innerHTML = data.output;
+        if(data.flag==0) console.log("Invalid Input!!");
+        else{
+            let count = document.getElementById("count").innerHTML = "⚫: "+data.black+" ⚪: "+data.white;
+            for(let i=0;i<8;i++){
+                for(let j=0;j<8;j++){
+                    let cell = document.querySelector("td[data-val='"+(i*8+j)+"']");
+                    let colortemp = "transparent";
+                    if(data.board[i][j]=="N"){
+                        colortemp = "grey";
+                    }
+                    else if(data.board[i][j]=="X"){
+                        colortemp = "black";
+                    }
+                    else if(data.board[i][j]=="O"){
+                        colortemp = "white";
+                    }
+                    cell.style.backgroundColor = colortemp;
+                }
+            }
+        }
+    });
+
+    socket.on("unlock",(data)=>{
+        click = true;
+    });
+
+</script>
+
+</html>
