@@ -348,45 +348,6 @@ class Othello:
                 return mi,row,col
             return "N",row,col
 
-
-
-    def start_game(self):
-        count = 64 - 4
-        self.board.disp()
-        while count!=0:
-            count-=1
-            if self.player:
-                self.player = False
-                print(self.board.valid("O"))
-                print(self.board.val["O"])
-                self.board.disp_val("O")
-                while True:
-                    try:
-                        row = int(input("Enter Row: "))
-                        col = int(input("Enter Col: "))
-                        if (row,col) not in [i[:-1] for i in self.board.valid("O")]:
-                            print(f"({row},{col}) is not valid")
-                            continue
-                        break
-                    except KeyboardInterrupt:
-                        exit()
-                    except:
-                        continue
-                self.board.insert(row,col,"O")
-            else:
-                self.player = True
-                self.board.disp_val("X")
-                heur,row,col = self.next_move_alpha_beta(True,6)
-                print("Thingy",row,col,heur)
-                if heur!="N" and row!=-1 and col!=-1:
-                    print("Inside thingy")
-                    self.board.insert(row,col,"X")
-                else:
-                    break
-        print("⚫ Count:",len(self.board.val["X"]))
-        print("⚪ Count:",len(self.board.val["O"]))
-        print("Game Over!!!")
-
 board = Othello()
 statement = "Debug Statements Appear Here"
 @app.route('/')
