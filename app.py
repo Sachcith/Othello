@@ -295,9 +295,9 @@ class Othello:
         self.player = False
         
     def next_move_alpha_beta(self,player,max_depth,cur_depth=0,row=-1,column=-1,alpha=float("-inf"),beta=float("inf")):
-        if self.board.val["X"]==[]:
-            return 10**5,row,column
         if self.board.val["O"]==[]:
+            return 10**5,row,column
+        if self.board.val["X"]==[]:
             return -1*10**5,row,column
         if self.board.winloss()!=0:
             return self.board.winloss(),row,column
@@ -381,6 +381,7 @@ def move(data):
         statement = "⚪ is Thinking!!"
         t = 1
         while board.board.valid("O")!=[]:
+            print(board.board.valid("O"))
             print(t)
             t+=1
             temptime = time.time()
@@ -393,8 +394,6 @@ def move(data):
             temptime = time.time() - temptime
             if temptime<1:
                 time.sleep(1)
-            socketio.emit("output",{"output":"⚫ Can play now!!","flag":1,"board":temp(board.board,"X"),"black":len(board.board.val["X"]),"white":len(board.board.val["O"])})
-            statement = "⚫ Can play now!!"
             if board.board.valid("X")!=[]:
                 break
         if board.board.valid("X")!=[]:
