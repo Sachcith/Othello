@@ -37,3 +37,4 @@ The game supports:
 
 3. Play the game...
 4. Checkout the UI build using FLASK-Socketio api
+5. Enjoy the game
