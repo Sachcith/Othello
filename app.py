@@ -6,7 +6,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 class Board:
-    __undo = None
+    undo = None
     def __init__(self,size=8):
         self.size = size
         self.board = self.createMatrix()
@@ -14,9 +14,9 @@ class Board:
         self.board[4][4]="O"
         self.board[3][4]="X"
         self.board[4][3]="X"
-        self.__undo = []
+        self.undo1 = [[[0 for i in range(8)] for j in range(8)]]
         self.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
-        self.__undo_Dict = []
+        self.undo_Dict = []
 
     def createMatrix(self):
         return [[0 for i in range(self.size)] for j in range(self.size)]
@@ -197,8 +197,8 @@ class Board:
             return False
         if self.board[row][column]!=0:
             return False
-        self.__undo.append(self.copy(self.board))
-        self.__undo_Dict.append(self.copy_dict(self.val))
+        self.undo1.append(self.copy(self.board))
+        self.undo_Dict.append(self.copy_dict(self.val))
         for i in self.valid(val):
             if (row,column)==i[:-1]: 
                 if i[2]==0: # Up
@@ -273,8 +273,8 @@ class Board:
         return True
     
     def undo(self):
-        self.board = self.copy(self.__undo.pop())
-        self.val = self.copy_dict(self.__undo_Dict.pop())
+        self.board = self.copy(self.undo1.pop())
+        self.val = self.copy_dict(self.undo_Dict.pop())
 
     def heuristic(self):
         return len(self.val["X"])-len(self.val["O"])
@@ -353,12 +353,11 @@ statement = "Debug Statements Appear Here"
 @app.route('/')
 def home():
     print(board.board.valid("X"))
-    return render_template('index.html',board=board.board.board,legal=[i[:-1] for i in board.board.valid("X")],black=len(board.board.val["X"]),white=len(board.board.val["O"]),statement=statement)
+    return render_template('index.html',board=board.board.board,legal=[i[:-1] for i in board.board.valid("X")],black=len(board.board.val["X"]),white=len(board.board.val["O"]),statement=statement,board_prev=board.board.undo1[-1],legal_prev=[])
 
-def temp(x,val):
+def temp(x,v):
     ans = [[0 for i in range(8)] for j in range(8)]
-    b = x.board
-    v = x.valid(val)
+    b = x
     v = [i[:-1] for i in v]
     for i in range(8):
         for j in range(8):
@@ -373,11 +372,13 @@ def move(data):
     print("Inside move")
     i,j = int(data["i"]),int(data["j"])
     print(f"Clicked: {i,j}")
+    x = board.board.valid("X")
     if board.board.insert(i,j,"X")==False:
         socketio.emit("output",{"output":"Invalid Move!!","flag":0})
         socketio.emit("unlock",{"flag":1})
     else:
-        socketio.emit("output",{"output":"⚪ is Thinking!!","flag":1,"board":temp(board.board,"O"),"black":len(board.board.val["X"]),"white":len(board.board.val["O"])})
+        socketio.emit("output",{"output":"⚪ is Thinking!!","flag":1,"board":temp(board.board.board,board.board.valid("O")),"black":len(board.board.val["X"]),"white":len(board.board.val["O"]),"prev":temp(board.board.undo1[-1],[])})
+        x = board.board.valid("O")
         statement = "⚪ is Thinking!!"
         t = 1
         while board.board.valid("O")!=[]:
@@ -397,7 +398,7 @@ def move(data):
             if board.board.valid("X")!=[]:
                 break
         if board.board.valid("X")!=[]:
-            socketio.emit("output",{"output":"⚫ Can play now!!","flag":1,"board":temp(board.board,"X"),"black":len(board.board.val["X"]),"white":len(board.board.val["O"])})
+            socketio.emit("output",{"output":"⚫ Can play now!!","flag":1,"board":temp(board.board.board,board.board.valid("X")),"black":len(board.board.val["X"]),"white":len(board.board.val["O"]),"prev":temp(board.board.undo1[-1],[])}) #use x if you wanna show prev steps valid too
             statement = "⚫ Can play now!!"
             socketio.emit("unlock",{"flag":1})
 
@@ -410,9 +411,9 @@ def reset1():
     board.board.board[4][4]="O"
     board.board.board[3][4]="X"
     board.board.board[4][3]="X"
-    board.board.__undo = []
+    board.board.undo1 = [[[0 for i in range(8)] for j in range(8)]]
     board.board.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
-    board.board.__undo_Dict = []
+    board.board.undo_Dict = []
     return redirect('/')
 
 if __name__=="__main__":

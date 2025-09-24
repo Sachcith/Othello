@@ -18,7 +18,7 @@
         align-items: center;   
         background-color:  rgba(0, 128, 0, 0.323);         
     }
-    .board {
+    .board, .prevboard{
         border: 2px solid black;
         border-radius: 8%;
         padding: 0.5%;
@@ -47,26 +47,52 @@
 </style>
 
 <body>
-    <div class="board">
-        <table id="table">
-            {% for i in range(8) %}
-                <tr>
-                    {% for j in range(8) %}
-                        {% if board[i][j]=="X" %}
-                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: black;">{{j}}</td>
-                        {% elif board[i][j]=="O" %}
-                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: white;">{{j}}</td>
-                        {% elif (i,j) in legal %}
-                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: grey;"></td>
-                        {% else %}
-                            <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: transparent;">{{j}}</td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
-
+    <table>
+        <tr>
+            <td style="border-radius: 0%;border-color: transparent;">
+                <div class="prevboard">
+                    <table id="table_prev">
+                        {% for i in range(8) %}
+                            <tr>
+                                {% for j in range(8) %}
+                                    {% if board_prev[i][j]=="X" %}
+                                        <td data-val="{{i*8+j+64}}" data-row="{{i}}" data-col="{{j}}" style="background-color: black;">{{j}}</td>
+                                    {% elif board_prev[i][j]=="O" %}
+                                        <td data-val="{{i*8+j+64}}" data-row="{{i}}" data-col="{{j}}" style="background-color: white;">{{j}}</td>
+                                    {% elif (i,j) in legal_prev %}
+                                        <td data-val="{{i*8+j+64}}" data-row="{{i}}" data-col="{{j}}" style="background-color: grey;"></td>
+                                    {% else %}
+                                        <td data-val="{{i*8+j+64}}" data-row="{{i}}" data-col="{{j}}" style="background-color: transparent;">{{j}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </td>
+            <td style="border-radius: 0%;border-color: transparent;">
+                <div class="board">
+                    <table id="table">
+                        {% for i in range(8) %}
+                            <tr>
+                                {% for j in range(8) %}
+                                    {% if board[i][j]=="X" %}
+                                        <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: black;">{{j}}</td>
+                                    {% elif board[i][j]=="O" %}
+                                        <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: white;">{{j}}</td>
+                                    {% elif (i,j) in legal %}
+                                        <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: grey;"></td>
+                                    {% else %}
+                                        <td data-val="{{i*8+j}}" data-row="{{i}}" data-col="{{j}}" style="background-color: transparent;">{{j}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
     <div class="Output">
         <center>
             <h3 id="output">{{statement}}</h3>
@@ -107,6 +133,22 @@
                         colortemp = "black";
                     }
                     else if(data.board[i][j]=="O"){
+                        colortemp = "white";
+                    }
+                    cell.style.backgroundColor = colortemp;
+                }
+            }
+            for(let i=0;i<8;i++){
+                for(let j=0;j<8;j++){
+                    let cell = document.querySelector("td[data-val='"+(i*8+j+64)+"']");
+                    let colortemp = "transparent";
+                    if(data.prev[i][j]=="N"){
+                        colortemp = "grey";
+                    }
+                    else if(data.prev[i][j]=="X"){
+                        colortemp = "black";
+                    }
+                    else if(data.prev[i][j]=="O"){
                         colortemp = "white";
                     }
                     cell.style.backgroundColor = colortemp;
