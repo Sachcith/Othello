@@ -402,6 +402,8 @@ def move(data):
             statement = "⚫ Can play now!!"
             socketio.emit("unlock",{"flag":1})
 
+            
+
 
 @app.route('/resetThing',methods=["GET","POST"])
 def reset1():
