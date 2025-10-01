@@ -1,5 +1,6 @@
 # ♟️ Othello (Reversi) in Python
 
+
 This is a **Python implementation of the classic board game Othello (also known as Reversi)**.  
 The game supports:
 - **Player vs Player (PvP)** mode.
