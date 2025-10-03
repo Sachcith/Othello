@@ -18,9 +18,9 @@
         align-items: center;   
         background-color:  rgba(0, 128, 0, 0.323);         
     }
-    .board, .prevboard{
+    .board{
         border: 2px solid black;
-        border-radius: 8%;
+        border-radius: 6%;
         padding: 0.5%;
         display: flex;
         align-items: center;
@@ -47,10 +47,18 @@
 </style>
 
 <body>
+    <h1>Othello</h1>
     <table>
         <tr>
+            <td colspan="2" id="timer" style="color:black;text-align: center;border:none;font-size: larger;font-weight: 600;">Timer : 0</td>
+        </tr>
+        <tr>
+            <td style="color:black;border:none;text-align: center;padding: 0;font-size: larger;font-weight: 600;">Previous State</td>
+            <td style="color:black;border:none;text-align: center;padding: 0;font-size: larger;font-weight: 600;">Current State</td>
+        </tr>
+        <tr>
             <td style="border-radius: 0%;border-color: transparent;">
-                <div class="prevboard">
+                <div class="board">
                     <table id="table_prev">
                         {% for i in range(8) %}
                             <tr>
@@ -103,6 +111,16 @@
 </body>
 
 <script>
+    let timerElement = document.getElementById("timer");
+    let time = 0;
+    let timerRunning = true;
+    let timerInterval = setInterval(() => {
+        if(timerRunning) {
+            time++;
+            timerElement.innerText = "Timer : "+time;
+        }
+    }, 1000);
+
     const socket = io();
     const board = document.getElementById("table");
     let click = true;
@@ -113,6 +131,7 @@
         let j = e.target.dataset.col;
         socket.emit("move",{"i":i,"j":j});
         console.log("Clicked: ("+i+","+j+")");
+        timerRunning = false;
         click = false;
     });
 
@@ -159,6 +178,7 @@
 
     socket.on("unlock",(data)=>{
         click = true;
+        timerRunning = true;
     });
 
 </script>
