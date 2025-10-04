@@ -336,7 +336,7 @@ class Othello:
                 self.board.insert(i[0],i[1],"O")
                 heur,r,c = self.next_move_alpha_beta(True,max_depth,cur_depth+1,i[0],i[1],alpha,beta)
                 self.board.undo()
-                if heur!="N" and heur<mi and r!=-1 and c!=-1:
+                if heur!="N" and heur<=mi and r!=-1 and c!=-1:
                     mi = heur
                     row = i[0]
                     col = i[1]
@@ -390,11 +390,10 @@ def move(data):
             print("Thingy",row,col,heur)
             if heur!="N" and row!=-1 and col!=-1:
                 board.board.insert(row,col,"O")
-            else:
-                break
             temptime = time.time() - temptime
             if temptime<1:
-                time.sleep(1)
+                #time.sleep(1)
+                pass
             if board.board.valid("X")!=[]:
                 break
         if board.board.valid("X")!=[]:
