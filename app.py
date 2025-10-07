@@ -329,7 +329,7 @@ class Othello:
         if cur_depth == max_depth:
             return self.board.heuristic(),row,column
         moves = self.board.valid("X" if player else "O")
-        if not moves:
+        if moves==[]:
             return self.board.heuristic(), row, col
         
         if player:
@@ -387,10 +387,11 @@ def temp(x,v):
     ans = [[0 for i in range(8)] for j in range(8)]
     b = x
     v = [i[:-1] for i in v]
+    print("V",v)
     for i in range(8):
         for j in range(8):
             if (i,j) in v:
-                ans[i][j]=None
+                ans[i][j]="N"
             else:
                 ans[i][j]=b[i][j]
     return ans
