@@ -327,4 +327,11 @@ model = YOLO(r"/home/sachcith/Documents/Sem 3/FAI/yolo outputs/Othello Yolov11-c
 # Run prediction on one image
 results = model.predict(img, verbose=False)
 
-print(results)
+probs = results[0].probs.data.cpu().numpy().tolist()
+print(probs)
+
+probs = results[0].probs.data.cpu().numpy().tolist()
+names = list(model.names.values())
+
+prob_dict = dict(zip(names, probs))
+print(prob_dict)

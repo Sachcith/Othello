@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
+from ultralytics import YOLO
 
 
 
@@ -330,7 +331,7 @@ class Othello:
             return self.board.heuristic(),row,column
         moves = self.board.valid("X" if player else "O")
         if moves==[]:
-            return self.board.heuristic(), row, col
+            return self.board.heuristic(), row, column
         
         if player:
             ma = float('-inf')
@@ -377,7 +378,36 @@ class Othello:
             return None,row,col
 
 board = Othello()
+difficulty = "easy"
 statement = "Debug Statements Appear Here"
+
+
+COLOR_MAP = {
+    "X": (0, 0, 0),          # black
+    "O": (255, 255, 255),    # white
+    0: (34, 139, 34)         # green (empty)
+}
+
+BOARD_SIZE = 8
+
+def board_to_rgb_image(board_obj, upscaled_size=32, color_map=COLOR_MAP):
+    arr = np.zeros((BOARD_SIZE, BOARD_SIZE, 3), dtype=np.uint8)
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            cell = board_obj.board[r][c]
+            if cell == "X":
+                arr[r, c] = color_map["X"]
+            elif cell == "O":
+                arr[r, c] = color_map["O"]
+            else:
+                arr[r, c] = color_map[0]
+    img = Image.fromarray(arr, mode="RGB")
+    if upscaled_size != BOARD_SIZE:
+        img = img.resize((upscaled_size, upscaled_size), resample=Image.NEAREST)
+    return img
+
+model = YOLO(r"/home/sachcith/Documents/Sem 3/FAI/yolo outputs/Othello Yolov11-cls 50 Epoch Test 1/weights/best.pt")
+
 @app.route('/')
 def home():
     print(board.board.valid("X"))
@@ -410,27 +440,64 @@ def move(data):
         x = board.board.valid("O")
         statement = "⚪ is Thinking!!"
         t = 1
-        while board.board.valid("O")!=[]:
-            print(board.board.valid("O"))
-            print(t)
-            t+=1
-            temptime = time.time()
-            heur,row,col = board.next_move_alpha_beta(False,6)
-            print("Thingy",row,col,heur)
-            if heur!=None and row!=-1 and col!=-1:
-                board.board.insert(row,col,"O")
-            temptime = time.time() - temptime
-            if temptime<1:
-                #time.sleep(1)
-                pass
-            if board.board.valid("X")!=[]:
-                break
+        if difficulty=="hard":
+            while board.board.valid("O")!=[]:
+                print(board.board.valid("O"))
+                print(t)
+                t+=1
+                temptime = time.time()
+                heur,row,col = board.next_move_alpha_beta(False,6)
+                print("Thingy",row,col,heur)
+                if heur!=None and row!=-1 and col!=-1:
+                    board.board.insert(row,col,"O")
+                temptime = time.time() - temptime
+                if temptime<1:
+                    #time.sleep(1)
+                    pass
+                if board.board.valid("X")!=[]:
+                    break
+        elif difficulty=="medium":
+            while board.board.valid("O")!=[]:
+                print(board.board.valid("O"))
+                print(t)
+                t+=1
+                temptime = time.time()
+                heur,row,col = board.next_move_alpha_beta(False,3)
+                print("Thingy",row,col,heur)
+                if heur!=None and row!=-1 and col!=-1:
+                    board.board.insert(row,col,"O")
+                temptime = time.time() - temptime
+                if temptime<1:
+                    #time.sleep(1)
+                    pass
+                if board.board.valid("X")!=[]:
+                    break
+        else:
+            z = time.time()
+            x = board.board.valid("O")
+            ans = -1
+            pos = None
+            for i in range(len(x)):
+                board.board.insert(x[i][0],x[i][1],"O")
+                img = board_to_rgb_image(board.board)  
+                results = model.predict(img, verbose=False)
+                probs = results[0].probs.data.cpu().numpy().tolist()
+                names = list(model.names.values())
+                prob_dict = dict(zip(names, probs))
+                print(prob_dict)
+                board.board.undo()
+                if prob_dict["player_minus"]>ans:
+                    ans = prob_dict["player_minus"]
+                    pos = x[i][:2]
+            print(time.time()-z)
+            if ans!=-1:
+                board.board.insert(pos[0],pos[1],"O")
         if board.board.valid("X")!=[]:
             socketio.emit("output",{"output":"⚫ Can play now!!","flag":1,"board":temp(board.board.board,board.board.valid("X")),"black":len(board.board.val["X"]),"white":len(board.board.val["O"]),"prev":temp(board.board.undo1[-1],[])}) #use x if you wanna show prev steps valid too
             statement = "⚫ Can play now!!"
             socketio.emit("unlock",{"flag":1})
 
-            
+  
 
 
 @app.route('/resetThing',methods=["GET","POST"])
@@ -445,6 +512,27 @@ def reset1():
     board.board.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
     board.board.undo_Dict = []
     return redirect('/')
+
+@app.route('/easy',methods=["GET","POST"])
+def easy():
+    global difficulty
+    difficulty = "easy"
+    print(difficulty)
+    return reset1()
+
+@app.route('/hard',methods=["GET","POST"])
+def hard():
+    global difficulty
+    difficulty = "hard"
+    print(difficulty)
+    return reset1()
+
+@app.route('/medium',methods=["GET","POST"])
+def medium():
+    global difficulty
+    difficulty = "medium"
+    print(difficulty)
+    return reset1()
 
 if __name__=="__main__":
     app.run(debug=True)

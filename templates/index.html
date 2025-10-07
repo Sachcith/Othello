@@ -107,7 +107,16 @@
         <center>
             <h3 id="output">{{statement}}</h3>
             <h3 id="count">⚫: {{black}} ⚪: {{white}}</h3>
-            <a href="/resetThing"><button>Reset</button></a>
+            <table>
+                <tr>
+                    <td style="border:none;"><a href="/easy"><button id="easy-btn" style="background-color: lightgrey;">Easy</button></a></td>
+                    <td style="border:none;"><a href="/medium"><button id="medium-btn" style="background-color: lightgray;">Medium</button></a></td>
+                    <td style="border:none;"><a href="/hard"><button id="hard-btn" style="background-color: lightgray;">Hard</button></a></td>
+                </tr>
+                <tr>
+                    <td style="border:none; text-align: center;" colspan="3"><a href="/resetThing"><button style="background-color: lightgray;">Reset</button></a></td>
+                </tr>
+            </table>
         </center>
     </div>
 </body>
