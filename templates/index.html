@@ -9,23 +9,25 @@
 <script src="{{url_for('static',filename='socketio.min.js')}}"></script>
 
 <style>
+    * {
+        margin: 0;
+    }
     body {
         margin: 0;                     
-        height: 100vh;                 
+        height: 100vh;              
         display: flex;                 
         flex-direction: column;
         justify-content: center;       
         align-items: center;   
         background-color:  rgba(0, 128, 0, 0.323);         
     }
-    .board{
+    .board,.smallboard{
         border: 2px solid black;
         border-radius: 6%;
         padding: 0.5%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 20px;
         background-color: rgba(0, 128, 0, 0.323);
     }
     td {
@@ -58,7 +60,7 @@
         </tr>
         <tr>
             <td style="border-radius: 0%;border-color: transparent;">
-                <div class="board">
+                <div class="smallboard">
                     <table id="table_prev">
                         {% for i in range(8) %}
                             <tr>

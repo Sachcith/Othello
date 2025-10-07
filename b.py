@@ -1,7 +1,3 @@
-from flask import Flask,render_template,redirect
-from flask_socketio import SocketIO
-import time
-
 
 import os
 import re
@@ -10,10 +6,6 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-
-
-app = Flask(__name__)
-socketio = SocketIO(app)
 
 class Board:
     undo = None
@@ -287,22 +279,7 @@ class Board:
         self.val = self.copy_dict(self.undo_Dict.pop())
 
     def heuristic(self):
-        weights = [
-            [100, -20, 10, 5, 5, 10, -20, 100],
-            [-20, -50, -2, -2, -2, -2, -50, -20],
-            [10, -2, 1, 1, 1, 1, -2, 10],
-            [5, -2, 1, 0, 0, 1, -2, 5],
-            [5, -2, 1, 0, 0, 1, -2, 5],
-            [10, -2, 1, 1, 1, 1, -2, 10],
-            [-20, -50, -2, -2, -2, -2, -50, -20],
-            [100, -20, 10, 5, 5, 10, -20, 100]
-        ]
-        penality = 0
-        for i in range(len(self.val["X"])):
-            penality += weights[self.val["X"][i][0]][self.val["X"][i][1]]
-        for i in range(len(self.val["O"])):
-            penality -= weights[self.val["O"][i][0]][self.val["O"][i][1]]
-        return penality
+        return len(self.val["X"])-len(self.val["O"])
     
     def winloss(self):
         if len(self.val["O"])==0:
@@ -311,139 +288,43 @@ class Board:
             return 200
         return 0
 
-class Othello:
-    board = None
-    player = None
-    
-    def __init__(self):
-        self.board = Board()
-        self.player = False
-        
-    def next_move_alpha_beta(self,player,max_depth,cur_depth=0,row=-1,column=-1,alpha=float("-inf"),beta=float("inf")):
-        if self.board.val["O"]==[]:
-            return 10**5,row,column
-        if self.board.val["X"]==[]:
-            return -1*10**5,row,column
-        if self.board.winloss()!=0:
-            return self.board.winloss(),row,column
-        if cur_depth == max_depth:
-            return self.board.heuristic(),row,column
-        moves = self.board.valid("X" if player else "O")
-        if not moves:
-            return self.board.heuristic(), row, col
-        
-        if player:
-            ma = float('-inf')
-            row = -1
-            col = -1
-            flag = False
-            for i in self.board.valid("X"):
-                flag = True
-                #self.board.disp_val("X")
-                self.board.insert(i[0],i[1],"X")
-                heur,r,c = self.next_move_alpha_beta(False,max_depth,cur_depth+1,i[0],i[1],alpha,beta)
-                self.board.undo()
-                if heur!=None and heur>ma and r!=-1 and c!=-1:
-                    ma = heur
-                    row = i[0]
-                    col = i[1]
-                if heur!=None and r!=-1 and c!=-1:
-                    alpha = max(alpha,heur)
-                    if alpha >= beta:
-                        break
-            if flag:
-                return ma,row,col
-            return None,row,col
-        else:
-            mi = float('inf')
-            row = -1
-            col = -1
-            flag = False
-            for i in self.board.valid("O"):
-                flag = True
-                self.board.insert(i[0],i[1],"O")
-                heur,r,c = self.next_move_alpha_beta(True,max_depth,cur_depth+1,i[0],i[1],alpha,beta)
-                self.board.undo()
-                if heur!=None and heur<=mi and r!=-1 and c!=-1:
-                    mi = heur
-                    row = i[0]
-                    col = i[1]
-                if heur!=None and r!=-1 and c!=-1:
-                    beta = min(beta,heur)
-                    if alpha >= beta:
-                        break
-            if flag:
-                return mi,row,col
-            return None,row,col
 
-board = Othello()
-statement = "Debug Statements Appear Here"
-@app.route('/')
-def home():
-    print(board.board.valid("X"))
-    return render_template('index.html',board=board.board.board,legal=[i[:-1] for i in board.board.valid("X")],black=len(board.board.val["X"]),white=len(board.board.val["O"]),statement=statement,board_prev=board.board.undo1[-1],legal_prev=[])
+board = Board()
+board.disp()
+#print(board.board)
 
-def temp(x,v):
-    ans = [[0 for i in range(8)] for j in range(8)]
-    b = x
-    v = [i[:-1] for i in v]
-    for i in range(8):
-        for j in range(8):
-            if (i,j) in v:
-                ans[i][j]=None
+COLOR_MAP = {
+    "X": (0, 0, 0),          # black
+    "O": (255, 255, 255),    # white
+    0: (34, 139, 34)         # green (empty)
+}
+
+BOARD_SIZE = 8
+
+def board_to_rgb_image(board_obj, upscaled_size=32, color_map=COLOR_MAP):
+    arr = np.zeros((BOARD_SIZE, BOARD_SIZE, 3), dtype=np.uint8)
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            cell = board_obj.board[r][c]
+            if cell == "X":
+                arr[r, c] = color_map["X"]
+            elif cell == "O":
+                arr[r, c] = color_map["O"]
             else:
-                ans[i][j]=b[i][j]
-    return ans
-@socketio.on("move")
-def move(data):
-    global statement
-    print("Inside move")
-    i,j = int(data["i"]),int(data["j"])
-    print(f"Clicked: {i,j}")
-    x = board.board.valid("X")
-    if board.board.insert(i,j,"X")==False:
-        socketio.emit("output",{"output":"Invalid Move!!","flag":0})
-        socketio.emit("unlock",{"flag":1})
-    else:
-        socketio.emit("output",{"output":"⚪ is Thinking!!","flag":1,"board":temp(board.board.board,board.board.valid("O")),"black":len(board.board.val["X"]),"white":len(board.board.val["O"]),"prev":temp(board.board.undo1[-1],[])})
-        x = board.board.valid("O")
-        statement = "⚪ is Thinking!!"
-        t = 1
-        while board.board.valid("O")!=[]:
-            print(board.board.valid("O"))
-            print(t)
-            t+=1
-            temptime = time.time()
-            heur,row,col = board.next_move_alpha_beta(False,6)
-            print("Thingy",row,col,heur)
-            if heur!=None and row!=-1 and col!=-1:
-                board.board.insert(row,col,"O")
-            temptime = time.time() - temptime
-            if temptime<1:
-                #time.sleep(1)
-                pass
-            if board.board.valid("X")!=[]:
-                break
-        if board.board.valid("X")!=[]:
-            socketio.emit("output",{"output":"⚫ Can play now!!","flag":1,"board":temp(board.board.board,board.board.valid("X")),"black":len(board.board.val["X"]),"white":len(board.board.val["O"]),"prev":temp(board.board.undo1[-1],[])}) #use x if you wanna show prev steps valid too
-            statement = "⚫ Can play now!!"
-            socketio.emit("unlock",{"flag":1})
+                arr[r, c] = color_map[0]
+    img = Image.fromarray(arr, mode="RGB")
+    if upscaled_size != BOARD_SIZE:
+        img = img.resize((upscaled_size, upscaled_size), resample=Image.NEAREST)
+    return img
 
-            
+img = board_to_rgb_image(board)
 
+from ultralytics import YOLO
 
-@app.route('/resetThing',methods=["GET","POST"])
-def reset1():
-    print("Inside Reset................................................")
-    board.board.board = board.board.createMatrix()
-    board.board.board[3][3]="O"
-    board.board.board[4][4]="O"
-    board.board.board[3][4]="X"
-    board.board.board[4][3]="X"
-    board.board.undo1 = [[[0 for i in range(8)] for j in range(8)]]
-    board.board.val = {"X":[(3,4),(4,3)],"O":[(3,3),(4,4)]}
-    board.board.undo_Dict = []
-    return redirect('/')
+# Load the trained model
+model = YOLO(r"/home/sachcith/Documents/Sem 3/FAI/yolo outputs/Othello Yolov11-cls 50 Epoch Test 1/weights/best.pt")
 
-if __name__=="__main__":
-    app.run(debug=True)
+# Run prediction on one image
+results = model.predict(img, verbose=False)
+
+print(results)
