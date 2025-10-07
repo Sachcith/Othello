@@ -406,7 +406,7 @@ def board_to_rgb_image(board_obj, upscaled_size=32, color_map=COLOR_MAP):
         img = img.resize((upscaled_size, upscaled_size), resample=Image.NEAREST)
     return img
 
-model = YOLO(r"/home/sachcith/Documents/Sem 3/FAI/yolo outputs/Othello Yolov11-cls 50 Epoch Test 1/weights/best.pt")
+model = YOLO(r"best.pt")
 
 @app.route('/')
 def home():
